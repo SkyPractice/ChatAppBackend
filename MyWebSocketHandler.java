@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MyWebSocketHandler extends TextWebSocketHandler {
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> idToName = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper(){{
        configure(SerializationFeature.INDENT_OUTPUT, true);
     }};
@@ -67,6 +68,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 break;
             }
         }
+        idToName.remove(session.getId());
         System.out.println("Client disconnected: " + session.getId() + " with status " + status);
     }
 
@@ -78,6 +80,15 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private void processMessage(WebSocketSession socketSession , SocketMessage msg) throws IOException {
         try {
+            if(!(msg instanceof AuthenticationMessage) && !idToName.containsKey(socketSession.getId())){
+                socketSession.sendMessage(new TextMessage("{\"type\" : \"NoAccess\"}"));
+                socketSession.close();
+                return;
+            }
+
+            if(!(msg instanceof AuthenticationMessage))
+                msg.setSender(idToName.get(socketSession.getId()));
+
             if (msg instanceof AuthenticationMessage message) {
                 if(!userService.existsByUsernameAndPassword(message.getUserName(), message.getPassword())){
                     socketSession.sendMessage(new TextMessage("{\"type\" : \"PasswordChange\"}"));
@@ -85,13 +96,13 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                     return;
                 }
                 sessions.put(message.getUserName(), socketSession);
+                idToName.put(socketSession.getId(), message.getUserName());
             }
             else if (msg instanceof PublicMessage message){
                 if(message.getContent().isEmpty()) return;
 
                 PublicMessageEntity msgEntity = new PublicMessageEntity(message.getSender(), message.getContent());
                 publicMsgService.getPublicMsgRepos().save(msgEntity);
-
                 for (WebSocketSession webSocketSession : sessions.values())
                     webSocketSession.sendMessage(new TextMessage(mapper.writeValueAsString(message)));
 
