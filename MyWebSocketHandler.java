@@ -1,13 +1,9 @@
 package com.app.demo;
 
 import com.app.demo.Messages.*;
-import com.app.demo.Services.FriendRequestService;
-import com.app.demo.Services.PrivateMsgService;
-import com.app.demo.Services.PublicMsgService;
-import com.app.demo.Services.UserService;
-import com.app.demo.Tables.FriendRequestEntity;
-import com.app.demo.Tables.PrivateMessageEntity;
-import com.app.demo.Tables.PublicMessageEntity;
+import com.app.demo.Messages.Servers.*;
+import com.app.demo.Services.*;
+import com.app.demo.Tables.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,6 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -34,15 +31,24 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     private final PublicMsgService publicMsgService;
     private final PrivateMsgService privateMsgService;
     private final FriendRequestService friendRequestService;
+    private final ServersJoinedService serversJoinedService;
+    private final ServerService serverService;
+    private final ChannelService channelService;
+    private final ChannelMsgService channelMsgService;
+
 
     @Autowired
     public MyWebSocketHandler(UserService userService, PublicMsgService publicMsgService,
                               PrivateMsgService privateMsgService,
-                              FriendRequestService friendRequestService) {
+                              FriendRequestService friendRequestService, ServersJoinedService serversJoinedService, ServerService serverService, ChannelService channelService, ChannelMsgService channelMsgService) {
         this.userService = userService;
         this.publicMsgService = publicMsgService;
         this.privateMsgService = privateMsgService;
         this.friendRequestService = friendRequestService;
+        this.serversJoinedService = serversJoinedService;
+        this.serverService = serverService;
+        this.channelService = channelService;
+        this.channelMsgService = channelMsgService;
     }
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -144,6 +150,111 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 if(sessions.containsKey(message.getTo()))
                     sessions.get(message.getTo()).sendMessage(new TextMessage(mapper.writeValueAsString(message)));
             }
+            else if (msg instanceof ServerMessage message){
+                if(message.getAction().equals("Create")){
+                    if(!message.getServerName().isEmpty()){
+
+                        ServerEntity server = new ServerEntity(message.getServerName());
+                        ServerEntity savedServer = serverService.getServerRepos().save(server);
+                        ServerCreationRes res = new ServerCreationRes("Server", server);
+
+                        socketSession.sendMessage(new TextMessage(mapper.writeValueAsString(res)));
+
+                        // ensure that the creator of the server is in it
+                        ServerJoinedEntity serverJoinedEntity = new ServerJoinedEntity(
+                                message.getSender(), savedServer.getId()
+                        );
+
+                        serversJoinedService.getServersJoinedRepos().save(serverJoinedEntity);
+
+                    }
+                }
+                else if (message.getAction().equals("Delete")){
+                    if(message.getServerId() != null){
+
+                        List<ServerJoinedEntity> people =
+                                serversJoinedService.getPeopleJoinedByServerId(message.getServerId());
+
+                        serverService.getServerRepos().deleteById(message.getServerId());
+                        serversJoinedService.deleteByServerId(message.getServerId());
+
+                        ServerDeletionRes serverDeletionRes = new ServerDeletionRes(
+                                message.getSender(), message.getServerId()
+                        );
+
+                        for(ServerJoinedEntity entity : people){
+                            if(sessions.containsKey(entity.getUsername())){
+                                sessions.get(entity.getUsername()).
+                                        sendMessage(new TextMessage(
+                                                mapper.writeValueAsString(serverDeletionRes)));
+                            }
+                        }
+
+                    }
+                }
+            }
+            else if (msg instanceof ChannelMessage message){
+
+                if (message.getCategory().isEmpty())
+                    message.setCategory("General");
+
+                List<ServerJoinedEntity> people =
+                        serversJoinedService.getPeopleJoinedByServerId(message.getServerId());
+
+                if(message.getAction().equals("Create")) {
+
+
+                    ChannelEntity channel = new ChannelEntity(
+                            message.getCategory(), message.getChannelName(), message.getServerId()
+                    );
+                    channelService.getChannelRepos().save(channel);
+
+                    for(ServerJoinedEntity entity : people){
+                        if(sessions.containsKey(entity.getUsername())){
+                            sessions.get(entity.getUsername()).
+                                    sendMessage(new TextMessage(
+                                            mapper.writeValueAsString(message)));
+                        }
+                    }
+                }
+                else if (message.getAction().equals("Delete")){
+
+                    channelService.getChannelRepos().deleteById(message.getChannelId());
+
+                    for(ServerJoinedEntity entity : people){
+                        if(sessions.containsKey(entity.getUsername())){
+                            sessions.get(entity.getUsername()).
+                                    sendMessage(new TextMessage(
+                                            mapper.writeValueAsString(message)));
+                        }
+                    }
+
+                }
+
+            }
+            else if (msg instanceof PublicChannelMessage message) {
+
+                Integer serverId = channelService.getServerIdByChannelId(message.getChannelId());
+
+                List<ServerJoinedEntity> people =
+                        serversJoinedService.getPeopleJoinedByServerId(serverId);
+
+
+                ChannelMessageEntity channelMessageEntity = new ChannelMessageEntity(
+                        message.getContent(), message.getSender(), message.getChannelId()
+                );
+                channelMsgService.getChannelMsgRepos().save(channelMessageEntity);
+
+
+                for(ServerJoinedEntity entity : people){
+                    if(sessions.containsKey(entity.getUsername())){
+                        sessions.get(entity.getUsername()).
+                                sendMessage(new TextMessage(
+                                        mapper.writeValueAsString(message)));
+                    }
+                }
+            }
+
         } catch (JsonProcessingException ex){
             ex.printStackTrace();
         }

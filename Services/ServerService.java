@@ -1,6 +1,7 @@
 package com.app.demo.Services;
 
 import com.app.demo.Repositories.ServerRepos;
+import com.app.demo.Tables.ServerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +17,10 @@ public class ServerService {
 
     public ServerRepos getServerRepos() {
         return serverRepos;
+    }
+
+    public ServerEntity getServerByName(String name){
+        return serverRepos.findOne(((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("name"), name))).orElse(null);
     }
 }

@@ -1,8 +1,6 @@
 package com.app.demo.Messages;
 
-import com.app.demo.Messages.Servers.ChannelMessage;
-import com.app.demo.Messages.Servers.PublicChannelMessage;
-import com.app.demo.Messages.Servers.ServerMessage;
+import com.app.demo.Messages.Servers.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -25,7 +23,10 @@ enum MessageType{
                 @JsonSubTypes.Type(value = FriendRequestResponseMessage.class, name = "FriendReqRes"),
                 @JsonSubTypes.Type(value = ServerMessage.class, name = "Server"),
                 @JsonSubTypes.Type(value = ChannelMessage.class, name = "Channel"),
-                @JsonSubTypes.Type(value = PublicChannelMessage.class, name = "ChannelMsg")
+                @JsonSubTypes.Type(value = PublicChannelMessage.class, name = "ChannelMsg"),
+                @JsonSubTypes.Type(value = ServerCreationRes.class, name = "ServerCreated"),
+                @JsonSubTypes.Type(value = ServerDeletionRes.class, name = "ServerDeleted")
+
         }
 )
 public class SocketMessage {
