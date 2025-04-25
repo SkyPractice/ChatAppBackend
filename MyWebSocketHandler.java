@@ -169,6 +169,32 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
                     }
                 }
+                else if (message.getAction().equals("Join")){
+                    if(message.getServerId() != null){
+
+                        List<ServerJoinedEntity> people =
+                                serversJoinedService.getPeopleJoinedByServerId(message.getServerId());
+
+                        ServerJoinedEntity guy = new ServerJoinedEntity(
+                                message.getSender(), message.getServerId()
+                        );
+
+                        serversJoinedService.getServersJoinedRepos().save(guy);
+
+                        ServerJoinRes res = new ServerJoinRes(message.getSender(), message.getServerId());
+
+                        socketSession.sendMessage(new TextMessage(mapper.writeValueAsString(res)));
+
+                        for(ServerJoinedEntity entity : people){
+                            if(sessions.containsKey(entity.getUsername())){
+                                sessions.get(entity.getUsername()).
+                                        sendMessage(new TextMessage(
+                                                mapper.writeValueAsString(message)));
+                            }
+                        }
+
+                    }
+                }
                 else if (message.getAction().equals("Delete")){
                     if(message.getServerId() != null){
 
@@ -195,6 +221,8 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             }
             else if (msg instanceof ChannelMessage message){
 
+                if(message.getCategory() == null)
+                    message.setCategory("General");
                 if (message.getCategory().isEmpty())
                     message.setCategory("General");
 
@@ -207,7 +235,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                     ChannelEntity channel = new ChannelEntity(
                             message.getCategory(), message.getChannelName(), message.getServerId()
                     );
-                    channelService.getChannelRepos().save(channel);
+                   ChannelEntity savedEntity = channelService.getChannelRepos().save(channel);
+
+                   message.setChannelId(savedEntity.getId());
 
                     for(ServerJoinedEntity entity : people){
                         if(sessions.containsKey(entity.getUsername())){

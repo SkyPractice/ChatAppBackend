@@ -25,7 +25,8 @@ enum MessageType{
                 @JsonSubTypes.Type(value = ChannelMessage.class, name = "Channel"),
                 @JsonSubTypes.Type(value = PublicChannelMessage.class, name = "ChannelMsg"),
                 @JsonSubTypes.Type(value = ServerCreationRes.class, name = "ServerCreated"),
-                @JsonSubTypes.Type(value = ServerDeletionRes.class, name = "ServerDeleted")
+                @JsonSubTypes.Type(value = ServerDeletionRes.class, name = "ServerDeleted"),
+                @JsonSubTypes.Type(value = ServerJoinRes.class, name = "ServerJoined")
 
         }
 )
