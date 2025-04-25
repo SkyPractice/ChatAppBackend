@@ -13,4 +13,8 @@ public class ChannelMsgService {
     public ChannelMsgService(ChannelMsgRepos channelMsgRepos) {
         this.channelMsgRepos = channelMsgRepos;
     }
+
+    public ChannelMsgRepos getChannelMsgRepos() {
+        return channelMsgRepos;
+    }
 }

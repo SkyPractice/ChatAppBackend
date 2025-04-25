@@ -13,4 +13,8 @@ public class ServerService {
     public ServerService(ServerRepos serverRepos) {
         this.serverRepos = serverRepos;
     }
+
+    public ServerRepos getServerRepos() {
+        return serverRepos;
+    }
 }

@@ -13,4 +13,8 @@ public class ChannelService {
     public ChannelService(ChannelRepos channelRepos) {
         this.channelRepos = channelRepos;
     }
+
+    public ChannelRepos getChannelRepos() {
+        return channelRepos;
+    }
 }
