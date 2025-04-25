@@ -18,21 +18,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/users/{index}")
-    public ResponseEntity<User> getUser(
-            @PathVariable("index") int id
-    ){
-        if(userService.getUserRepos().count() < id){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(userService.getUserRepos().findById(id).orElse(null), HttpStatus.FOUND);
-    }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getUsers(){
-        return new ResponseEntity<>(userService.getUserRepos().findAll(), HttpStatus.OK);
-    }
-
     @GetMapping("/users/exists")
     public ResponseEntity<String> userExists(
             @RequestParam("username") String username,
@@ -52,27 +37,27 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<Void> postUser(
+    public ResponseEntity<String> postUser(
             @RequestBody User user
     ){
-        userService.getUserRepos().save(user);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-    @DeleteMapping("/users/{index}")
-    public ResponseEntity<Void> deleteUser(
-            @PathVariable("index") int id
-    ){
-        if(userService.getUserRepos().count() < id){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if(!userService.existsByUsername(user.getUserName())) {
+            userService.getUserRepos().save(user);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         }
-        userService.getUserRepos().deleteById(id);
+
+        return new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND);
+    }
+    @DeleteMapping("/users")
+    public ResponseEntity<Void> deleteUser(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password
+    ){
+        userService.deleteByUsernameAndPassword(username, password);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/users/{index}")
+    @PutMapping("/users")
     public ResponseEntity<Void> putUser(
-            @PathVariable("index") int id,
             @RequestBody User user
     ){
         userService.getUserRepos().save(user);
