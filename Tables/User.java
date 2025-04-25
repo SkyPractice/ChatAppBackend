@@ -14,8 +14,8 @@ public class User {
     private String userName;
     @JsonProperty("password")
     private String password;
-    @JsonProperty("phonenum")
-    private String phoneNum;
+    @JsonProperty("email")
+    private String email;
     @JsonProperty("country")
     private String country;
     @Column(
@@ -28,12 +28,16 @@ public class User {
 
     }
 
-    public User(String userName, String password, String phoneNum, String country, String notes) {
+    public User(String userName, String password, String email, String country, String notes) {
         this.userName = userName;
         this.password = password;
-        this.phoneNum = phoneNum;
+        this.email = email;
         this.country = country;
         this.notes = notes;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public String getUserName() {
@@ -52,12 +56,12 @@ public class User {
         this.password = password;
     }
 
-    public String getPhoneNum() {
-        return phoneNum;
+    public String getEmail() {
+        return email;
     }
 
-    public void setPhoneNum(String phoneNum) {
-        this.phoneNum = phoneNum;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getCountry() {

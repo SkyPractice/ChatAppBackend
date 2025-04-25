@@ -24,6 +24,10 @@ public class PublicMessageEntity {
         this.content = content;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public String getSender() {
         return sender;
     }

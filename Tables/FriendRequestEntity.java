@@ -22,6 +22,10 @@ public class FriendRequestEntity {
 
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public FriendRequestEntity(String sender, String receiver, Boolean accepted) {
         this.sender = sender;
         this.receiver = receiver;

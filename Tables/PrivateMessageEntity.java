@@ -24,6 +24,10 @@ public class PrivateMessageEntity {
 
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public PrivateMessageEntity(String sender, String content, String receiver) {
         this.sender = sender;
         this.content = content;
