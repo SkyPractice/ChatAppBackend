@@ -45,6 +45,11 @@ public class UserService {
         userRepos.delete(userSpecification);
     }
 
+    public User getByUserName(String username){
+        return userRepos.findOne((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("userName"), username)).orElse(null);
+    }
+
 
     public UserRepos getUserRepos(){
         return userRepos;

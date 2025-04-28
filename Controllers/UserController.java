@@ -4,17 +4,22 @@ import com.app.demo.RestDTOS.UserDTO;
 import com.app.demo.Services.UserService;
 import com.app.demo.Tables.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 public class UserController {
 
+    @Value("${file.upload.directory}") // Configure this in your application.properties or application.yml
+    private String uploadDirectory;
     private final UserService userService;
 
     @Autowired
@@ -23,6 +28,7 @@ public class UserController {
     }
 
     @GetMapping("/users/exists")
+    @ResponseBody
     public ResponseEntity<String> userExists(
             @RequestParam("username") String username,
             @RequestParam("password") String password
@@ -40,6 +46,19 @@ public class UserController {
 
     }
 
+    @GetMapping("/users/details")
+    public User getUserDetails(
+            @RequestParam("username") String username
+    ){
+        User user = userService.getByUserName(username);
+        if(user != null){
+            user.setPassword("NoAccess");
+            return user;
+        }
+
+        return null;
+    }
+
     @PostMapping("/users")
     public ResponseEntity<String> postUser(
             @RequestBody User user
@@ -53,23 +72,29 @@ public class UserController {
     }
 
     @PostMapping("/users/multipart")
+    @CrossOrigin(origins = "http://localhost:5173")
     public ResponseEntity<String> postUserMultiPart(@ModelAttribute UserDTO user){
-        User userEntity = new User(
-                user.userName(), user.password(), user.email(), user.country(), user.notes()
-        );
 
-        if(!userService.existsByUsername(userEntity.getUserName())) {
+
+        if(!userService.existsByUsername(user.userName())) {
+            User userEntity = new User(
+                    user.userName(), user.password(), user.email(), user.notes(),
+                    user.userName() + user.file().getOriginalFilename().substring(user.file().getOriginalFilename().lastIndexOf('.'))
+            );
             User userr = userService.getUserRepos().save(userEntity);
 
-        try {
-            user.file().transferTo(new File("/static/" + userr.getId().toString().substring(userr.getId().toString().lastIndexOf('.'))));
-        }
-        catch (IOException exception){
-            exception.printStackTrace();
-        }
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        }
 
+            File uploadDir = new File(uploadDirectory);
+            if(!uploadDir.exists())
+                uploadDir.mkdirs();
+            try {
+                user.file().transferTo(new File(uploadDir.getAbsolutePath() + File.separator + user.userName() + user.file().getOriginalFilename().substring(user.file().getOriginalFilename().lastIndexOf('.'))));
+            }
+            catch (IOException exception){
+                exception.printStackTrace();
+            }
+            return new ResponseEntity<>("{\"exists\" : false}", HttpStatus.CREATED);
+        }
         return new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND);
     }
 

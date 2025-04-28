@@ -19,6 +19,10 @@ public class PublicMessageEntity {
     @Column(length = 2000, name = "content")
     private String content;
 
+    public PublicMessageEntity(){
+
+    }
+
     public PublicMessageEntity(String sender, String content) {
         this.sender = sender;
         this.content = content;

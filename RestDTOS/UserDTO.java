@@ -8,7 +8,6 @@ public record UserDTO(
         @JsonProperty("username") String userName,
         @JsonProperty("password") String password,
         @JsonProperty("email") String email,
-        @JsonProperty("country") String country,
         @JsonProperty("notes") String notes,
         @JsonProperty("file") MultipartFile file) {
 }

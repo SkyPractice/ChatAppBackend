@@ -16,8 +16,9 @@ public class User {
     private String password;
     @JsonProperty("email")
     private String email;
-    @JsonProperty("country")
-    private String country;
+
+    private String pfpName;
+
     @Column(
             length = 2000
     )
@@ -28,12 +29,12 @@ public class User {
 
     }
 
-    public User(String userName, String password, String email, String country, String notes) {
+    public User(String userName, String password, String email, String notes, String pfpName) {
         this.userName = userName;
         this.password = password;
         this.email = email;
-        this.country = country;
         this.notes = notes;
+        this.pfpName = pfpName;
     }
 
     public Integer getId() {
@@ -64,13 +65,6 @@ public class User {
         this.email = email;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
 
     public String getNotes() {
         return notes;
@@ -78,5 +72,13 @@ public class User {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getPfpName() {
+        return pfpName;
+    }
+
+    public void setPfpName(String pfpName) {
+        this.pfpName = pfpName;
     }
 }
