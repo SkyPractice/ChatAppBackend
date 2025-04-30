@@ -2,9 +2,13 @@ package com.app.demo.Tables;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import org.springframework.stereotype.Indexed;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "Users",
+    indexes = {
+        @Index(name = "userNameIndex", columnList = "userName")
+    })
 public class User {
 
     @Id

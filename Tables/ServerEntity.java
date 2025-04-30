@@ -11,14 +11,24 @@ public class ServerEntity {
     private Integer id;
 
     private String name;
+    private String ownerName;
 
 
     public ServerEntity(){
 
     }
 
-    public ServerEntity(String name) {
+    public ServerEntity(String name, String ownerName) {
         this.name = name;
+        this.ownerName = ownerName;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
     }
 
     public Integer getId() {

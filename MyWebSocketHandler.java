@@ -154,7 +154,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 if(message.getAction().equals("Create")){
                     if(!message.getServerName().isEmpty()){
 
-                        ServerEntity server = new ServerEntity(message.getServerName());
+                        ServerEntity server = new ServerEntity(message.getServerName(), message.getSender());
                         ServerEntity savedServer = serverService.getServerRepos().save(server);
                         ServerCreationRes res = new ServerCreationRes("Server", server);
 
@@ -162,7 +162,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
                         // ensure that the creator of the server is in it
                         ServerJoinedEntity serverJoinedEntity = new ServerJoinedEntity(
-                                message.getSender(), savedServer.getId()
+                                message.getSender(), savedServer.getId(), savedServer.getName()
                         );
 
                         serversJoinedService.getServersJoinedRepos().save(serverJoinedEntity);
@@ -175,13 +175,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                         List<ServerJoinedEntity> people =
                                 serversJoinedService.getPeopleJoinedByServerId(message.getServerId());
 
+                        if(people.stream().anyMatch((e) -> e.getUsername().equals(message.getSender())))
+                            return;
+
                         ServerJoinedEntity guy = new ServerJoinedEntity(
-                                message.getSender(), message.getServerId()
+                                message.getSender(), message.getServerId(), message.getServerName()
                         );
 
                         serversJoinedService.getServersJoinedRepos().save(guy);
 
-                        ServerJoinRes res = new ServerJoinRes(message.getSender(), message.getServerId());
+                        ServerJoinRes res = new ServerJoinRes(message.getSender(), message.getServerId(), message.getServerName());
 
                         socketSession.sendMessage(new TextMessage(mapper.writeValueAsString(res)));
 
@@ -269,9 +272,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 List<ServerJoinedEntity> people =
                         serversJoinedService.getPeopleJoinedByServerId(serverId);
 
+                User senderDetails = userService.getByUserName(message.getSender());
 
                 ChannelMessageEntity channelMessageEntity = new ChannelMessageEntity(
-                        message.getContent(), message.getSender(), message.getChannelId()
+                        message.getContent(), message.getSender(), message.getChannelId(),
+                        senderDetails.getPfpName()
                 );
                 channelMsgService.getChannelMsgRepos().save(channelMessageEntity);
 

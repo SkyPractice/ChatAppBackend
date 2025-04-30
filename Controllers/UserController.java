@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class UserController {
@@ -29,7 +31,8 @@ public class UserController {
 
     @GetMapping("/users/exists")
     @ResponseBody
-    public ResponseEntity<String> userExists(
+    @Async
+    public CompletableFuture<ResponseEntity<String>> userExists(
             @RequestParam("username") String username,
             @RequestParam("password") String password
     ){
@@ -37,43 +40,47 @@ public class UserController {
         String response;
         if(userService.existsByUsernameAndPassword(username, password)){
             response = "{\"exists\" : true}";
-            return new ResponseEntity<>(response, HttpStatus.FOUND);
+            return CompletableFuture.completedFuture(new ResponseEntity<>(response, HttpStatus.FOUND));
         }
         else {
             response = "{\"exists\" : false}";
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return CompletableFuture.completedFuture(new ResponseEntity<>(response, HttpStatus.NOT_FOUND));
         }
 
     }
 
     @GetMapping("/users/details")
-    public User getUserDetails(
+    @Async
+    public CompletableFuture<User> getUserDetails(
             @RequestParam("username") String username
     ){
         User user = userService.getByUserName(username);
         if(user != null){
             user.setPassword("NoAccess");
-            return user;
+            return CompletableFuture.completedFuture(user);
         }
 
         return null;
     }
 
     @PostMapping("/users")
-    public ResponseEntity<String> postUser(
+    @Async
+    public CompletableFuture<ResponseEntity<String>> postUser(
             @RequestBody User user
     ){
         if(!userService.existsByUsername(user.getUserName())) {
             userService.getUserRepos().save(user);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return CompletableFuture.completedFuture(new ResponseEntity<>(HttpStatus.CREATED));
         }
 
-        return new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND);
+        return CompletableFuture.completedFuture(
+                new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND));
     }
 
     @PostMapping("/users/multipart")
     @CrossOrigin(origins = "http://localhost:5173")
-    public ResponseEntity<String> postUserMultiPart(@ModelAttribute UserDTO user){
+    @Async
+    public CompletableFuture<ResponseEntity<String>> postUserMultiPart(@ModelAttribute UserDTO user){
 
 
         if(!userService.existsByUsername(user.userName())) {
@@ -93,26 +100,30 @@ public class UserController {
             catch (IOException exception){
                 exception.printStackTrace();
             }
-            return new ResponseEntity<>("{\"exists\" : false}", HttpStatus.CREATED);
+            return CompletableFuture.completedFuture(
+                    new ResponseEntity<>("{\"exists\" : false}", HttpStatus.CREATED));
         }
-        return new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND);
+        return CompletableFuture.completedFuture(
+                new ResponseEntity<>("{\"exists\" : true}", HttpStatus.FOUND));
     }
 
     @DeleteMapping("/users")
-    public ResponseEntity<Void> deleteUser(
+    @Async
+    public CompletableFuture<ResponseEntity<Void>> deleteUser(
             @RequestParam("username") String username,
             @RequestParam("password") String password
     ){
         userService.deleteByUsernameAndPassword(username, password);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return CompletableFuture.completedFuture(new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     @PutMapping("/users")
-    public ResponseEntity<Void> putUser(
+    @Async
+    public CompletableFuture<ResponseEntity<Void>> putUser(
             @RequestBody User user
     ){
         userService.getUserRepos().save(user);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return CompletableFuture.completedFuture(new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
 }

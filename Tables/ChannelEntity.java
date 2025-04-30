@@ -4,7 +4,10 @@ package com.app.demo.Tables;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Channels")
+@Table(name = "Channels",
+    indexes = {
+        @Index(name = "serverIdIndex", columnList = "serverId")
+    })
 public class ChannelEntity {
 
     @Id

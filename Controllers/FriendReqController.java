@@ -3,9 +3,11 @@ package com.app.demo.Controllers;
 import com.app.demo.Repositories.FriendRequestRepos;
 import com.app.demo.Services.FriendRequestService;
 import com.app.demo.Tables.FriendRequestEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class FriendReqController {
@@ -16,16 +18,20 @@ public class FriendReqController {
     }
 
     @GetMapping("/friends/accepted/{username}")
-    public List<FriendRequestEntity> getAcceptedFriendRequestsByName(
+    @Async
+    public CompletableFuture<List<FriendRequestEntity>> getAcceptedFriendRequestsByName(
             @PathVariable("username") String username
     ){
-        return friendRequestService.acceptedFriendRequestsBySingleName(username);
+        return CompletableFuture.completedFuture(
+                friendRequestService.acceptedFriendRequestsBySingleName(username));
     }
     @GetMapping("/friends/pending/{username}")
-    public List<FriendRequestEntity> getPendingFriendRequestsByName(
+    @Async
+    public CompletableFuture<List<FriendRequestEntity>> getPendingFriendRequestsByName(
             @PathVariable("username") String username
     ){
-        return friendRequestService.pendingFriendRequestsBySingleName(username);
+        return CompletableFuture.completedFuture(
+                friendRequestService.pendingFriendRequestsBySingleName(username));
     }
 
 }

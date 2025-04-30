@@ -3,7 +3,11 @@ package com.app.demo.Tables;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ServersJoined")
+@Table(name = "ServersJoined", indexes = {
+        @Index(name = "idx_user_name_server_joined", columnList = "username"),
+        @Index(name = "idx_server_name", columnList = "serverName")
+
+})
 public class ServerJoinedEntity {
 
     @Id
@@ -11,11 +15,22 @@ public class ServerJoinedEntity {
     private Integer id;
 
     private String username;
+    private String serverName;
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
     private Integer serverId;
 
-    public ServerJoinedEntity(String username, Integer serverId) {
+    public ServerJoinedEntity(String username, Integer serverId, String serverName) {
         this.username = username;
         this.serverId = serverId;
+        this.serverName = serverName;
     }
 
     public ServerJoinedEntity() {

@@ -3,21 +3,26 @@ package com.app.demo.Tables;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ChannelMessages")
+@Table(name = "ChannelMessages",
+    indexes = {
+        @Index(name = "channelIdIndex", columnList = "channelId")
+    }
+)
 public class ChannelMessageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     private Integer channelId;
     private String content;
     private String sender;
+    private String senderImg;
 
-    public ChannelMessageEntity(String content, String sender, Integer channelId) {
+    public ChannelMessageEntity(String content, String sender, Integer channelId, String senderImg) {
         this.content = content;
         this.sender = sender;
         this.channelId = channelId;
+        this.senderImg = senderImg;
     }
 
     public ChannelMessageEntity() {
@@ -49,5 +54,13 @@ public class ChannelMessageEntity {
 
     public Integer getId() {
         return id;
+    }
+
+    public String getSenderImg() {
+        return senderImg;
+    }
+
+    public void setSenderImg(String senderImg) {
+        this.senderImg = senderImg;
     }
 }

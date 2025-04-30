@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 public class ServerJoinRes extends SocketMessage {
 
     private Integer serverId;
+    private String serverName;
 
     public ServerJoinRes(){
 
@@ -16,9 +17,18 @@ public class ServerJoinRes extends SocketMessage {
         this.serverId = serverId;
     }
 
-    public ServerJoinRes(String sender, Integer serverId) {
+    public ServerJoinRes(String sender, Integer serverId, String serverName) {
         super(sender);
         this.serverId = serverId;
+        this.serverName = serverName;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 
     public Integer getServerId() {
